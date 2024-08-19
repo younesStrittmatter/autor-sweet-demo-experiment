@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My experiment</title>
+    <title>SAME Iowa Gambling experiment</title>
     <script src="https://unpkg.com/jspsych@7.3.3"></script>
     <script src="iowa-gambling_jsfile.js"></script>
     <link href="https://unpkg.com/jspsych@7.3.3/css/jspsych.css" rel="stylesheet" type="text/css"/>
 </head>
 <body></body>
 <script>
-    const TRIALS = 100
+    const experiment_payoff = 1
+    const TRIALS = 24
     const WIN_CHANCE = .5
     const START_POINTS = 200
 
-
-    jsPsych = initJsPsych({
-            on_finish: function () {
-                jsPsych.data.get().filter({trial_type: 'iowaGambling'}).localSave('csv', 'experiment_data.csv');
-            }
-        }
-    )
-
-    let values = [
-        [10, -25],
-        [5, -5],
-        [5, -5],
-        [10, -25]
-    ]
-    let flips = []
-    for (let i = 0; i < Math.floor(TRIALS * WIN_CHANCE); i++) {
-        flips.push(0)
+    if (Math.random() >= 0.5) {
+        high_score = START_POINTS * 1.5; // Update high_score if the condition is met
     }
-    for (let i = Math.floor(TRIALS * WIN_CHANCE); i < TRIALS; i++) {
-        flips.push(1)
+
+    values_array = [[[10, 0], [5, 0], [5, 0], [10, 0]], [[10, -25], [5, -5], [5, -5], [10, -25]], [[25, -200], [5, -5], [5, -5], [25, -200]]]
+
+    let values = values_array[1]
+    let flips = []
+    // Create a variable win chance that decreases over time
+    let winChance = WIN_CHANCE;
+
+    // Loop through each trial
+    for (let i = 0; i < TRIALS; i++) {
+        // Calculate a decreasing win chance based on the trial index
+        if (experiment_payoff === 2) { // Apply this logic only for the last payoff scheme
+            winChance = 1 - ((i / TRIALS)*0.8); // Decreases linearly over time
+        }
+
+        // Determine if this trial is a win or loss based on winChance
+        if (Math.random() < winChance) {
+            flips.push(0); // Win
+        } else {
+            flips.push(1); // Loss
+        }
     }
     flips = shuffle(flips)
 
