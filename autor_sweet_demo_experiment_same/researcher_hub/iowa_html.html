@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://unpkg.com/jspsych@7.3.3"></script>
+    <script src="https://younesstrittmatter.github.io/iowaGambling/iowa-gambling.js"></script>
+    <link href="https://unpkg.com/jspsych@7.3.3/css/jspsych.css" rel="stylesheet" type="text/css"/>
+</head>
+<body></body>
+<script>
+    const TRIALS = 100
+    const WIN_CHANCE = .5
+    const START_POINTS = 200
+
+
+    jsPsych = initJsPsych({
+            on_finish: function () {
+                jsPsych.data.get().filter({trial_type: 'iowaGambling'}).localSave('csv', 'experiment_data.csv');
+            }
+        }
+    )
+
+    let values = [
+        [10, -25],
+        [5, -5],
+        [5, -5],
+        [10, -25]
+    ]
+    let flips = []
+    for (let i = 0; i < Math.floor(TRIALS * WIN_CHANCE); i++) {
+        flips.push(0)
+    }
+    for (let i = Math.floor(TRIALS * WIN_CHANCE); i < TRIALS; i++) {
+        flips.push(1)
+    }
+    flips = shuffle(flips)
+
+    let score = START_POINTS
+
+    timeline = []
+    for (let i = 0; i < TRIALS; i++) {
+        let flip = flips[i]
+        timeline.push(
+            {
+                type: jsPsychIowaGambling,
+                values: [values[0][flip], values[1][flip], values[2][flip], values[3][flip]],
+                reward_penalty: [
+                    [values[0][0], values[0][1]],
+                    [values[1][0], values[1][1]],
+                    [values[2][0], values[2][1]],
+                    [values[3][0], values[3][1]]],
+                chance: WIN_CHANCE,
+                current_score: () => {
+                    return score
+                },
+                on_finish: (data) => {
+                    score = data.score_after
+                    if (data.reward === 5) {
+                        data['type'] = 'safe'
+                    } else {
+                        data['type'] = "risky"
+                    }
+                }
+            })
+    }
+
+    jsPsych.run(timeline);
+
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+
+        // While there remain elements to shuffle.
+        while (currentIndex > 0) {
+
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+        }
+
+        return array;
+    }
+
+</script>
+</html>
