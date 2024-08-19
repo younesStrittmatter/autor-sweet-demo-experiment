@@ -39,6 +39,12 @@
                 pretty_name: 'Values for the cards',
                 default: .5,
                 description: 'The rewards for the decks.'
+            },
+            high_score: {
+                type: jspsych.ParameterType.INT,
+                pretty_name: 'High Score',
+                default: 0,
+                description: 'High score based on random value and current score'
             }
         }
     }
@@ -57,6 +63,15 @@
             pointDiv.className += ' score'
             pointDiv.innerText = trial.current_score
             display_element.appendChild(pointDiv)
+
+            // Check if high_score is greater than zero, then create and append it
+            if (trial.high_score > 0) {
+                let highScoreDiv = document.createElement('div');
+                highScoreDiv.className += ' high-score';
+                highScoreDiv.innerText = `High Score: ${trial.high_score}`;
+                display_element.appendChild(highScoreDiv);
+            }
+
             let decks = []
             for (let i = 0; i < 4; i++) {
                 let deck = document.createElement('div')
@@ -153,6 +168,14 @@ const css_style =
     .score {
     position: fixed;
     top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%)
+    color: black;
+    }
+
+    .high_score {
+    position: fixed;
+    top: 70vh;
     left: 50vw;
     transform: translate(-50%, -50%)
     color: black;
