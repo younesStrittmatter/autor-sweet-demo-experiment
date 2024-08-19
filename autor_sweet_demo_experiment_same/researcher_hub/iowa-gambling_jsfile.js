@@ -166,19 +166,19 @@ const css_style =
     }
     
     .score {
-    position: fixed;
-    top: 50vh;
-    left: 50vw;
-    transform: translate(-50%, -50%)
-    color: black;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: black;
     }
 
-    .high_score {
-    position: fixed;
-    top: 70vh;
-    left: 50vw;
-    transform: translate(-50%, -50%)
-    color: black;
+    .high-score {
+        position: fixed;
+        top: calc(50% + 30px);
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: black;
     }
     
     .card-deck {
