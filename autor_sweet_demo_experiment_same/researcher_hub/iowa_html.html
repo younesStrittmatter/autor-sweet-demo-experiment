@@ -8,13 +8,15 @@
 </head>
 <body></body>
 <script>
-    const experiment_payoff = 1
-    const TRIALS = 24
-    const WIN_CHANCE = .5
-    const START_POINTS = 200
+    const experiment_payoff = 1;
+    const TRIALS = 24;
+    const WIN_CHANCE = .5;
+    const START_POINTS = 200;
+
+    let highest_score = 0; // Initialize high_score with a default value
 
     if (Math.random() >= 0.5) {
-        high_score = START_POINTS * 1.5; // Update high_score if the condition is met
+        highest_score = START_POINTS * 1.5; // Update high_score if the condition is met
     }
 
     values_array = [[[10, 0], [5, 0], [5, 0], [10, 0]], [[10, -25], [5, -5], [5, -5], [10, -25]], [[25, -200], [5, -5], [5, -5], [25, -200]]]
@@ -57,6 +59,9 @@
                 chance: WIN_CHANCE,
                 current_score: () => {
                     return score
+                },
+                high_score: () => {
+                    return highest_score
                 },
                 on_finish: (data) => {
                     score = data.score_after
