@@ -175,7 +175,7 @@ const css_style =
 
     .high_score {
     position: fixed;
-    top: 25vh;
+    top: 70vh;
     left: 50vw;
     transform: translate(-50%, -50%)
     color: black;
