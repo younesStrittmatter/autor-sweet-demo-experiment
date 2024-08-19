@@ -61,7 +61,7 @@
             display_element.appendChild(style)
             let pointDiv = document.createElement('div')
             pointDiv.className += ' score'
-            pointDiv.innerText = trial.current_score
+            pointDiv.innerText = `Current Score: ${trial.current_score}`;
             display_element.appendChild(pointDiv)
 
             // Check if high_score is greater than zero, then create and append it
@@ -175,7 +175,7 @@ const css_style =
 
     .high_score {
     position: fixed;
-    top: 70vh;
+    top: 25vh;
     left: 50vw;
     transform: translate(-50%, -50%)
     color: black;

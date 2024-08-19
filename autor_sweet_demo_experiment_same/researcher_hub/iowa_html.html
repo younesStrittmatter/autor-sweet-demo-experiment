@@ -12,8 +12,13 @@
     const TRIALS = 24;
     const WIN_CHANCE = .5;
     const START_POINTS = 200;
-
     let highest_score = 0; // Initialize high_score with a default value
+
+    jsPsych = initJsPsych({
+        on_finish: function () {
+            jsPsych.data.get().filter({trial_type: 'iowaGambling'}).localSave('csv', 'experiment_data.csv');
+        }
+    })
 
     if (Math.random() >= 0.5) {
         highest_score = START_POINTS * 1.5; // Update high_score if the condition is met
