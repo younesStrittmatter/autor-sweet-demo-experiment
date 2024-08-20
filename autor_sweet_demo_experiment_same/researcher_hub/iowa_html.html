@@ -31,27 +31,20 @@
     // Create a variable win chance that decreases over time
     let winChance = WIN_CHANCE;
 
-    // Loop through each trial
+    let score = START_POINTS
+
+    timeline = []
     for (let i = 0; i < TRIALS; i++) {
-        // Calculate a decreasing win chance based on the trial index
         if (experiment_payoff === 2) { // Apply this logic only for the last payoff scheme
             winChance = 1 - ((i / TRIALS)*0.8); // Decreases linearly over time
         }
 
         // Determine if this trial is a win or loss based on winChance
         if (Math.random() < winChance) {
-            flips.push(0); // Win
+            flip = 0; // Win
         } else {
-            flips.push(1); // Loss
+            flip = 1; // Loss
         }
-    }
-    flips = shuffle(flips)
-
-    let score = START_POINTS
-
-    timeline = []
-    for (let i = 0; i < TRIALS; i++) {
-        let flip = flips[i]
         timeline.push(
             {
                 type: jsPsychIowaGambling,
@@ -61,7 +54,7 @@
                     [values[1][0], values[1][1]],
                     [values[2][0], values[2][1]],
                     [values[3][0], values[3][1]]],
-                chance: WIN_CHANCE,
+                chance: winChance,
                 current_score: () => {
                     return score
                 },
