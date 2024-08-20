@@ -61,7 +61,7 @@
             display_element.appendChild(style)
             let pointDiv = document.createElement('div')
             pointDiv.className += ' score'
-            pointDiv.innerText = `Current Score: ${trial.current_score}`;
+            pointDiv.innerText = trial.current_score;
             display_element.appendChild(pointDiv)
 
             // Check if high_score is greater than zero, then create and append it
