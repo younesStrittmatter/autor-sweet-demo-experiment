@@ -119,7 +119,6 @@
                     value: value,
                     score_before: trial.current_score,
                     score_after: trial.current_score + trial.values[i],
-                    values: JSON.stringify(trial.values),
                     choice_index: i,
                     reward: trial.reward_penalty[i][0],
                     penalty: trial.reward_penalty[i][1],

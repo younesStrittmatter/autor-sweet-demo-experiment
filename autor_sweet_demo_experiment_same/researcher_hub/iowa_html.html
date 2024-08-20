@@ -64,9 +64,9 @@
                 on_finish: (data) => {
                     score = data.score_after
                     if (data.reward === 5) {
-                        data['type'] = 'safe'
+                        data['type'] = 0
                     } else {
-                        data['type'] = "risky"
+                        data['type'] = 1
                     }
                 }
             })
