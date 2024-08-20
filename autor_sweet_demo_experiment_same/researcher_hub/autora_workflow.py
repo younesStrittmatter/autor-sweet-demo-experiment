@@ -15,7 +15,7 @@ from autora.state import StandardState, on_state, Delta
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sweetbean.sequence import Block, Experiment
 from sweetbean.stimulus import TextStimulus
 
@@ -26,10 +26,13 @@ from stimulus_sequence import stimulus_sequence
 # dependent variable is rt in ms (0 - 10000)
 variables = VariableCollection(
     independent_variables=[
-        Variable(name="S1", allowed_values=np.linspace(1, 100, 100)),
-        Variable(name="S2", allowed_values=np.linspace(1, 100, 100)),
+        Variable(name="score_before", value_range=(0, 400)),
+        Variable(name="score_after", value_range=(0, 400)),
+        Variable(name="trial_index", allowed_values=np.linspace(0, 23, 24)),
+        Variable(name="choice_index", allowed_values=np.linspace(0, 3, 4)),
+        Variable(name="value", value_range=(-205, 205)),
         ],
-    dependent_variables=[Variable(name="rt", value_range=(0, 10000))])
+    dependent_variables=[Variable(name="type", value_range=(0, 1))])
 
 # *** State *** #
 # With the variables, we can set up a state. The state object represents the state of our
@@ -52,7 +55,7 @@ state = StandardState(
 # Here we use a linear regression as theorist, but you can use other theorists included in
 # autora (for a list: https://autoresearch.github.io/autora/theorist/)
 
-theorist = LinearRegression()
+theorist = LogisticRegression()
 
 
 # To use the theorist on the state object, we wrap it with the on_state functionality and return a
@@ -136,40 +139,86 @@ def runner_on_state(conditions):
         experiment_data = pd.concat([experiment_data, _df], axis=0)
     return Delta(experiment_data=experiment_data)
 
+# def trial_list_to_experiment_data(trial_sequence):
+#     """
+#     Parse a trial sequence (from jsPsych) into dependent and independent variables
+#     independent: S1, S2
+#     dependent: rt
+#     """
+#     res_dict = {
+#         'S1': [],
+#         'S2': [],
+#         'rt': []
+#     }
+#     for trial in trial_sequence:
+#         # Filter trials that are not ROK (instructions, fixation, ...)
+#         if trial['trial_type'] != 'rok':
+#             continue
+#         # Filter trials without rt
+#         if 'rt' not in trial or trial['rt'] is None:
+#             continue
+#         # the intensity is equivalent to the number of oobs (set in sweetBean script)
+#         # rt is a default value of every trial
+#         s1 = trial['number_of_oobs'][0]
+#         s2 = trial['number_of_oobs'][1]
+#         rt = trial['rt']
+        
+#         res_dict['S1'].append(int(s1))
+#         res_dict['S2'].append(int(s2))
+#         res_dict['rt'].append(float(rt))
+    
+#     dataframe_raw = pd.DataFrame(res_dict)
+    
+#     # Calculate the mean rt for each S1/S2 combination
+#     grouped = dataframe_raw.groupby(['S1', 'S2']).mean().reset_index()
+
+#     return grouped
+
 def trial_list_to_experiment_data(trial_sequence):
     """
-    Parse a trial sequence (from jsPsych) into dependent and independent variables
-    independent: S1, S2
-    dependent: rt
+    Parse a trial sequence (from jsPsych) into dependent and independent variables.
+    Extracts the following:
+    - Independent Variables: score_before, score_after, trial_index, choice_index, value
+    - Dependent Variable: type
     """
     res_dict = {
-        'S1': [],
-        'S2': [],
-        'rt': []
+        'score_before': [],
+        'score_after': [],
+        'trial_index': [],
+        'choice_index': [],
+        'value': [],
+        'type': []
     }
-    for trial in trial_sequence:
-        # Filter trials that are not ROK (instructions, fixation, ...)
-        if trial['trial_type'] != 'rok':
-            continue
-        # Filter trials without rt
-        if 'rt' not in trial or trial['rt'] is None:
-            continue
-        # the intensity is equivalent to the number of oobs (set in sweetBean script)
-        # rt is a default value of every trial
-        s1 = trial['number_of_oobs'][0]
-        s2 = trial['number_of_oobs'][1]
-        rt = trial['rt']
-        
-        res_dict['S1'].append(int(s1))
-        res_dict['S2'].append(int(s2))
-        res_dict['rt'].append(float(rt))
     
+    for trial in trial_sequence:
+        # Filter out trials that are not of the appropriate type (e.g., 'iowaGambling')
+        if trial['trial_type'] != 'iowaGambling':
+            continue
+        
+        # Extract the variables based on the provided keys
+        score_before = trial.get('score_before')
+        score_after = trial.get('score_after')
+        trial_index = trial.get('trial_index')
+        choice_index = trial.get('choice_index')
+        value = trial.get('value')
+        trial_type = trial.get('type', 0)  # Default to 0 if 'type' is not available
+
+        # Ensure all necessary data is present
+        if None in (score_before, score_after, trial_index, choice_index, value):
+            continue
+
+        # Append data to the result dictionary
+        res_dict['score_before'].append(float(score_before))
+        res_dict['score_after'].append(float(score_after))
+        res_dict['trial_index'].append(int(trial_index))
+        res_dict['choice_index'].append(int(choice_index))
+        res_dict['value'].append(float(value))
+        res_dict['type'].append(int(trial_type))
+    
+    # Convert the result dictionary to a pandas DataFrame
     dataframe_raw = pd.DataFrame(res_dict)
     
-    # Calculate the mean rt for each S1/S2 combination
-    grouped = dataframe_raw.groupby(['S1', 'S2']).mean().reset_index()
-
-    return grouped
+    return dataframe_raw
 
 # Now, we can run our components
 for _ in range(3):
@@ -180,11 +229,31 @@ for _ in range(3):
 
 # *** Report the data *** #
 # If you changed the theorist, also change this part
-def report_linear_fit(m: LinearRegression, precision=4):
-    s = f"y = {np.round(m.coef_[0].item(), precision)} x " \
-        f"+ {np.round(m.intercept_.item(), 4)}"
+
+def report_logistic_fit(m: LogisticRegression, feature_names=None, precision=4):
+    # Coefficients (weights)
+    coef = m.coef_.flatten()
+    
+    # Intercept
+    intercept = m.intercept_.item()
+
+    # Format feature names
+    if feature_names is None:
+        feature_names = [f"x{i+1}" for i in range(len(coef))]
+
+    # Log-odds equation
+    terms = [f"{np.round(c, precision)} * {fn}" for c, fn in zip(coef, feature_names)]
+    log_odds_eq = " + ".join(terms)
+    s = f"log-odds = {log_odds_eq} + {np.round(intercept, precision)}"
+
+    # Odds ratios (exponentiated coefficients)
+    odds_ratios = np.exp(coef)
+    odds_ratios_str = ", ".join([f"{fn}: {np.round(or_, precision)}" for fn, or_ in zip(feature_names, odds_ratios)])
+    
+    s += f"\nOdds Ratios: {odds_ratios_str}"
+    
     return s
 
 
-print(report_linear_fit(state.models[0]))
-print(report_linear_fit(state.models[-1]))
+print(report_logistic_fit(state.models[0]))
+print(report_logistic_fit(state.models[-1]))
