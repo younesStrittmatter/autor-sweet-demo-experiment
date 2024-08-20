@@ -43,7 +43,7 @@
             high_score: {
                 type: jspsych.ParameterType.INT,
                 pretty_name: 'High Score',
-                default: 0,
+                default: 3000,
                 description: 'High score based on random value and current score'
             }
         }
@@ -66,6 +66,7 @@
 
             // Check if high_score is greater than zero, then create and append it
             if (trial.high_score > 0) {
+                display_element.appendChild(style)
                 let highScoreDiv = document.createElement('div');
                 highScoreDiv.className += ' high-score';
                 highScoreDiv.innerText = `High Score: ${trial.high_score}`;
@@ -119,6 +120,7 @@
                     value: value,
                     score_before: trial.current_score,
                     score_after: trial.current_score + trial.values[i],
+                    high_score: trial.high_score,
                     choice_index: i,
                     reward: trial.reward_penalty[i][0],
                     penalty: trial.reward_penalty[i][1],
