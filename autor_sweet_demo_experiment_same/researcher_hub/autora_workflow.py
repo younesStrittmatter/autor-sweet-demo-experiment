@@ -31,6 +31,7 @@ variables = VariableCollection(
         Variable(name="trial_index", allowed_values=np.linspace(0, 23, 24)),
         Variable(name="choice_index", allowed_values=np.linspace(0, 3, 4)),
         Variable(name="value", value_range=(-205, 205)),
+        Variable(name="high_score", allowed_values=np.linspace(0, 300, 2)),
         ],
     dependent_variables=[Variable(name="type", value_range=(0, 1))])
 
@@ -187,6 +188,7 @@ def trial_list_to_experiment_data(trial_sequence):
         'trial_index': [],
         'choice_index': [],
         'value': [],
+        'high_score': [],
         'type': []
     }
     
@@ -201,10 +203,11 @@ def trial_list_to_experiment_data(trial_sequence):
         trial_index = trial.get('trial_index')
         choice_index = trial.get('choice_index')
         value = trial.get('value')
+        high_score = trial.get('high_score')
         trial_type = trial.get('type', 0)  # Default to 0 if 'type' is not available
 
         # Ensure all necessary data is present
-        if None in (score_before, score_after, trial_index, choice_index, value):
+        if None in (score_before, score_after, trial_index, choice_index, value, high_score):
             continue
 
         # Append data to the result dictionary
@@ -213,6 +216,7 @@ def trial_list_to_experiment_data(trial_sequence):
         res_dict['trial_index'].append(int(trial_index))
         res_dict['choice_index'].append(int(choice_index))
         res_dict['value'].append(float(value))
+        res_dict['high_score'].append(int(high_score))
         res_dict['type'].append(int(trial_type))
     
     # Convert the result dictionary to a pandas DataFrame
