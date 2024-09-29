@@ -9,7 +9,7 @@ Basic Workflow
 import json
 
 from autora.variable import VariableCollection, Variable
-from autora.experimentalist.random import pool
+from autora.experimentalist.random import random_sample
 from autora.experiment_runner.firebase_prolific import firebase_runner
 from autora.state import StandardState, on_state, Delta
 
@@ -84,8 +84,13 @@ def theorist_on_state(experiment_data, variables):
 
 
 @on_state()
-def experimentalist_on_state(variables, num_samples):
-    return Delta(conditions=pool(variables, num_samples))
+def experimentalist_on_state(variables):
+    a = np.array(random_sample(
+    [[[10, 0], [5, 0], [5, 0], [10, 0]], [[10, -25], [5, -5], [5, -5], [10, -25]], [[25, -200], [5, -5], [5, -5], [25, -200]]]))
+    # Combine all lists into one
+    combined_list = [item for sublist in a for item in sublist]
+    df = pd.DataFrame({'payoff_scheme': [combined_list]})
+    return Delta(conditions=df)
 
 
 # ** Experiment Runner ** #
@@ -96,8 +101,8 @@ def experimentalist_on_state(variables, num_samples):
 firebase_credentials = {
   "type": "service_account",
   "project_id": "sweetbean-experiment",
-  "private_key_id": "ceeb10d8b6603f71c46af9bceeafd67513f8d3f8",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDKFIQWmkT7DANw\niSo54e5ydwRBmQFmvh4AVRcBZGrO5KRV1WV6imcaS7hWYLCkNzXEeJnmK1FY3WOo\ni1dqNBDcM2LgoWFjaMoltyXzrNv9oFhrzfXUQxwqYWxfMTlArsjTUc9yWqqq4Ksd\nkp7Q9XA6yf0R6OQsj0Sr6gydcJd1cqtCEsIvVUvIdiZPlJPCZf0ZkZGxnFTQeOJk\n79c7vhj2SutJVY0lOYFGsy3fgaq7I4IcwsKeW+IRIIomoq43HXNCx/vajgkkTTsu\nprW9HVMOqud5ZoEOtAAsmj1cehvytdjH5X0UYlsGCb/s5hjt9G3KTFx4mgsL2xCs\n4X9m6rM5AgMBAAECggEAWGnQftkhPBt998Mzg96rRk53QMISQGMG2ktgRN4r8vhL\nRDiY7RvXz0P402X7cuWq8xp27yLdtP0r6KaKaO99vvIGnVROOUG0S/sNMkdbeuSo\nOwaCO0vfa1VzplRxgbDXMcnV8ujjSd8BTu+C59aysy4DuM3F4w8N0w+UVF/aDGqH\nlC3RqPrJVw5sYB8IwGeDes2vzSQl3s2E1/6pia7u5SWkxX8vhCtLwcwMwujM4zyX\nVqL6oUJQwuM+ueV3nJDPzAwsYSsHcp0afEkiwaO9n9Jnh5bZt8GpE5TH51ZEXfgB\nGaYwT2JRKEKMuDpnVb/JymhB+f/2s9kdT8w8pfJnbwKBgQDpyC+iaqVM+EWQCEbf\nI16utJXif21hZhuhrotK7mlVFdnzTF6TuQ31Nvck0Jbu5dccaCgazYOxy1HB8zTT\nxivz053l6aSBLzPRiRFtKbAjFWb54eBOaDmoRxdwUN/Ki9gOfBFF1f5QEU7bKYyN\nEdmRaGWNAzt2GEeCEXFrRxL+zwKBgQDdSQm556emMbxkj94VQ5bIKqCoLPTZ4a0N\nBekvBcpcaIAzZiI8PeSYm+zijmIHRViozFPl3lOPt35jTZmh1jKaTfu9leL1frwG\nGXSY6t0qcTJBmLMHD/XHxJpsw3rkyOzFXdR1DED+wm6F1SEGwhwR/U7neQfP78m9\nhCci8F3vdwKBgQDbHvJe5lynZzE0Tj23Whyd3c9663snRqBxi/stMYdy47dUTul6\nxoHprCo7zHMb2jwkeQ/WB3j/hZXNF1sVf/KkaF3gKH0zRH3qUPIPgnqAd8f8QRWQ\nCCq6ql+yu2r3GtpYwTsjXO8wNvjVfP0rIGbv3o0IfdYW26zyoczQA18viwKBgQC6\njf/QJfeVyipskUmGncO5nw5wme4W3gZ5izkqdnRC8arbKkjEht14t0O/QJBuVs1H\nCXPVwFisOeMortxNrvpcUlBgZcPAegbkEYPWA3NPe70FxklwM8lekGYsOaUayjWq\nss8RmrIU1TA+Tg8Y1n65v9dMmCG48QwgZRBliUV4QwKBgQCP8fytW534WGHH7qm3\nu50rjwjER8PReOAfAA3R53S8x5R4EDdGbdU0mOwjk0K+TMXpzsycKnibN0vvk8mk\nwDoi+xODFIWQQ+uRz1ZtMmfNruSOKVsEqaDB7B5lcGKzsw2kDvmLxkO/IzVarcZA\nZIJ70bZvyYQ1kpBQ5E+nIAOrAg==\n-----END PRIVATE KEY-----\n",
+  "private_key_id": "71c0102fb21c5a630ab92f7b1921ec71a2bfcb31",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDnVrWGOebjLNW/\ns+ZHpgEymAj6fBWCGfIw+tY2jq/be21r6yRbo9b4x8qLDybSacmR2hy5CFfSoGpt\nt7mxzyzvj//Ac0CM9BA012g7sRC/2d79vWrLYCdkHJdr/IITSTchUlI0kbOFdML+\nundN94oWYLMb3Al/t329O5FH6dmbJFBG5wvZ8o9pmy6QRqSFZ+G7MJyIxQ67Xzwn\nrC5zhVQkGgmgr677CIQcQRNksKbKWncmatuMlrpjXz1Qejvd4ofhpJeIMhSbN0JZ\nx1u5ExJmk8+Im3gG7tNxiYi1fKeR17YapbcTpLBwY3PEYeFABn/K2TH/vjavwxZ/\nZBG22aG/AgMBAAECggEAMvt198XM72XTGXNhHYslGmxNFj7AUrK7IDY3fUCG2vzh\niXYBxjxeROdq6KiHKrnrlTwXNmPzTtTRf6qMvvXkdksq1tPPdwDWjX6nVvhXs6Al\nN5BF99oR9Eskx8SXOf7ZqntE6JbvlEq+KnsXjdQu122qK0qbwUzD5i85fjq4HStB\nN3io6h1WkJ2z0mRM3474LLiZOlPwEfDgahqDo8YcAYKAC79GQZv8QcpZnLdTeioz\nkXjc9mRzombUKsjZL9s869yfFiKWQf1oTa9hAFp98x9DNFBl2Pmu/kkZAZqxOwBV\nol7wUcvhqpOvKWfhoz8W2LSneswlcO+fUpD+ERxHgQKBgQD9gG6zwtrWrpvyzbQm\n2CuQAPMxWhpbohYfRq8kwDtfJkt5XkwbXU1/9ke3f12brQstThj+bcCaldaJNCyk\nWzBjBvkzDdTKNKF/C+nCzmYMMVmGr0ZpwwVpgpQ/3JzFUpr6BcHpyfWulOfDGr9T\n4gbJCc6kbhnJxsDk1eo9IUBWfwKBgQDpnlxnJIGCWfdotWaHUk9XveCl0UD/0Gbm\n6DQmJMSQTaX7QoZscj9ICdoIMqi0RZGMdfT6U5QHHWBQ9vBXh3BISM1WJJT5otZ0\nEovSB+nDDiiJRMB7sR91GcMVJikE+bXa5IIyV4XuOlKXPl0I2pwCjJWi+PeRhzy3\nhEiY5ymUwQKBgQD7T/bveS5QhHwQIsQFemr9cSOneocE7tR1nzKFAZoagzFxmf1j\nZ4UsZbDFhpv7eHrLKFB4879swT0VekcDjW+TzNcCOSUKbVDpTZsqSEo8rjPt5Reu\nQ+u6pPxpr0EwEeuYEFskddZ9hBubfYnOFBbb+UAGHSytr7+NXVDB15Qb6wKBgAzi\n5lfuJJKrIcGN2AT43lWJrL2YyEwUE8kC3/WGq60GC3TLm5yZxLHVkUhIexPOjpO/\n4e54875cuXZd2K4LU385PNJWnD0U5V1rtHi2ZQeUXVoNB80K3SBZdnBRNYwHtidH\n2YKrX0DfyLR9BSa64EYnuQ1PTGCjpA6/Zj3A6oNBAoGBAMKYChj8aYQ+W4xhTJlx\nYw7327kkrC5cC629J53slarnJZJuHDF/5RymssmdLJq2cBMppS3cc17pY9BaAKP3\nUeKXqOV9ydzfUPaFHDQeUXSUO0mAsR4oztBINWNBs0hMuohKrobbigbJA5ZZwll9\njEWRXIoY6+oA9a483p890qjP\n-----END PRIVATE KEY-----\n",
   "client_email": "firebase-adminsdk-ap5gl@sweetbean-experiment.iam.gserviceaccount.com",
   "client_id": "117772886570355590756",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -117,18 +122,111 @@ experiment_runner = firebase_runner(
 # Again, we need to wrap the runner to use it on the state. Here, we send the raw conditions.
 @on_state()
 def runner_on_state(conditions):
-    res = []
-    for idx, c in conditions.iterrows():
-        i_1 = c['S1']
-        i_2 = c['S2']
-        # get a timeline via sweetPea
-        timeline = trial_sequences(i_1, i_2, 10)[0]
-        # get js code via sweetBeaan
-        js_code = stimulus_sequence(timeline, i_1, i_2)
-        res.append(js_code)
+    # for idx, c in conditions.iterrows():
+    #     i_1 = c['S1']
+    #     i_2 = c['S2']
+    #     # get a timeline via sweetPea
+    #     timeline = trial_sequences(i_1, i_2, 10)[0]
+    #     # get js code via sweetBeaan
+    #     js_code = stimulus_sequence(timeline, i_1, i_2)
+    
+    
+    js_code = conditions['payoff_scheme']
+    
+    js_code = json.dumps(js_code.tolist())
+
+    # JavaScript code template where js_code is injected
+    js_script = f"""
+    <script>
+        const experiment_payoff = 1;
+        const TRIALS = 24;
+        const WIN_CHANCE = .5;
+        const START_POINTS = 200;
+        let highest_score = 0; // Initialize high_score with a default value
+
+        <!-- jsPsych = initJsPsych({{
+            on_finish: function () {{
+                jsPsych.data.get().filter({{trial_type: 'iowaGambling'}});
+            }}
+        }}) -->
+
+        jsPsych.init({{
+            timeline: timeline, // `timeline` will be defined by the injected js_code
+            display_element: 'jspsych-experiment', // The div where the experiment will run
+            on_finish: function() {{
+                jsPsych.data.displayData(); // Callback to handle the data
+            }}
+        }})
+
+        if (Math.random() >= 0.5) {{
+            highest_score = START_POINTS * 1.5; // Update high_score if the condition is met
+        }}
+
+        let values = {js_code};  // Injected js_code
+        let flips = [];
+        let winChance = WIN_CHANCE;
+        let score = START_POINTS;
+
+        timeline = [];
+        for (let i = 0; i < TRIALS; i++) {{
+            if (experiment_payoff === 2) {{
+                winChance = 1 - ((i / TRIALS) * 0.8); // Decreases linearly over time
+            }}
+
+            if (Math.random() < winChance) {{
+                flip = 0; // Win
+            }} else {{
+                flip = 1; // Loss
+            }}
+
+            timeline.push({{
+                type: jsPsychIowaGambling,
+                values: [values[0][flip], values[1][flip], values[2][flip], values[3][flip]],
+                reward_penalty: [
+                    [values[0][0], values[0][1]],
+                    [values[1][0], values[1][1]],
+                    [values[2][0], values[2][1]],
+                    [values[3][0], values[3][1]]
+                ],
+                chance: winChance,
+                current_score: () => {{
+                    return score;
+                }},
+                high_score: () => {{
+                    return highest_score;
+                }},
+                on_finish: (data) => {{
+                    score = data.score_after;
+                    if (data.reward === 5) {{
+                        data['type'] = 0;
+                    }} else {{
+                        data['type'] = 1;
+                    }}
+                }}
+            }});
+        }}
+
+        jsPsych.run(timeline);
+
+        function shuffle(array) {{
+            let currentIndex = array.length, randomIndex;
+
+            while (currentIndex > 0) {{
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }}
+
+            return array;
+        }}
+    </script>
+    """
+    
     
     conditions_to_send = conditions.copy()
-    conditions_to_send['experiment_code'] = res
+    conditions_to_send['experiment_code'] = js_script
     # upload and run the experiment:
     data_raw = experiment_runner(conditions_to_send)
 
@@ -226,7 +324,7 @@ def trial_list_to_experiment_data(trial_sequence):
 
 # Now, we can run our components
 for _ in range(3):
-    state = experimentalist_on_state(state, num_samples=2)  # Collect 2 conditions per iteration
+    state = experimentalist_on_state(state)  # Collect 1 payoff scheme per iteration
     state = runner_on_state(state)
     state = theorist_on_state(state)
 

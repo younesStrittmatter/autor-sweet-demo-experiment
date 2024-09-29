@@ -14,9 +14,17 @@
     const START_POINTS = 200;
     let highest_score = 0; // Initialize high_score with a default value
 
-    jsPsych = initJsPsych({
+    <!-- jsPsych = initJsPsych({
         on_finish: function () {
-            jsPsych.data.get().filter({trial_type: 'iowaGambling'}).localSave('csv', 'experiment_data.csv');
+            jsPsych.data.get().filter({trial_type: 'iowaGambling'});
+        }
+    }) -->
+
+    jsPsych.init({
+        timeline: timeline, // `timeline` will be defined by the injected js_code
+        display_element: 'jspsych-experiment', // The div where the experiment will run
+        on_finish: function() {
+            jsPsych.data.displayData(); // Callback to handle the data
         }
     })
 
@@ -24,9 +32,7 @@
         highest_score = START_POINTS * 1.5; // Update high_score if the condition is met
     }
 
-    values_array = [[[10, 0], [5, 0], [5, 0], [10, 0]], [[10, -25], [5, -5], [5, -5], [10, -25]], [[25, -200], [5, -5], [5, -5], [25, -200]]]
-
-    let values = values_array[1]
+    let values = {{ js_code }}
     let flips = []
     // Create a variable win chance that decreases over time
     let winChance = WIN_CHANCE;
