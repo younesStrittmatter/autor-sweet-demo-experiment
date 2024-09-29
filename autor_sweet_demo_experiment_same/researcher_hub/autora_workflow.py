@@ -225,7 +225,7 @@ def runner_on_state(conditions):
     """
     
     
-    conditions_to_send = conditions.copy()
+    conditions_to_send = pd.DataFrame()
     conditions_to_send['experiment_code'] = js_script
     # upload and run the experiment:
     data_raw = experiment_runner(conditions_to_send)
