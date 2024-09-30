@@ -22,18 +22,23 @@ from sweetbean.stimulus import TextStimulus
 from trial_sequence import trial_sequences
 from stimulus_sequence import stimulus_sequence
 # *** Set up variables *** #
-# independent variable is coherence in percent (0 - 100)
-# dependent variable is rt in ms (0 - 10000)
 variables = VariableCollection(
     independent_variables=[
-        Variable(name="score_before", value_range=(0, 400)),
-        Variable(name="score_after", value_range=(0, 400)),
-        Variable(name="trial_index", allowed_values=np.linspace(0, 23, 24)),
-        Variable(name="choice_index", allowed_values=np.linspace(0, 3, 4)),
-        Variable(name="value", value_range=(-205, 205)),
-        Variable(name="high_score", allowed_values=np.linspace(0, 300, 2)),
-        ],
-    dependent_variables=[Variable(name="type", value_range=(0, 1))])
+        Variable(name="trial_index", allowed_values=np.arange(0, 24)),  # Trials index: 24 trials
+        Variable(name="choice_index", allowed_values=np.arange(0, 4)),  # Choice: 4 choices (e.g., 4 card decks)
+        Variable(name="payoff_reward_a", value_range=(0, 50)),  # Reward for choice A
+        Variable(name="payoff_penalty_a", value_range=(-50, 0)),  # Penalty for choice A
+        Variable(name="payoff_reward_b", value_range=(0, 50)),  # Reward for choice B
+        Variable(name="payoff_penalty_b", value_range=(-50, 0)),  # Penalty for choice B
+        Variable(name="payoff_reward_c", value_range=(0, 50)),  # Reward for choice C
+        Variable(name="payoff_penalty_c", value_range=(-50, 0)),  # Penalty for choice C
+        Variable(name="payoff_reward_d", value_range=(0, 50)),  # Reward for choice D
+        Variable(name="payoff_penalty_d", value_range=(-50, 0)),  # Penalty for choice D
+        Variable(name="win_chance", value_range=(0.4, 0.6)),  # Probability of winning on a trial
+        Variable(name="starting_points", value_range=(100, 300)),  # Initial points assigned to the participant
+    ],
+    dependent_variables=[Variable(name="choice_outcome", value_range=(0, 1))]  # Outcome of choice (win or lose)
+)
 
 # *** State *** #
 # With the variables, we can set up a state. The state object represents the state of our
@@ -78,19 +83,56 @@ def theorist_on_state(experiment_data, variables):
 
 
 # ** Experimentalist ** #
-# Here, we use a random pool and use the wrapper to create a on state function
-# Note: The argument num_samples is not a state field. Instead, we will pass it in when calling
-# the function
-
+# Now, we will sample random combinations of the independent variables before running the experiment.
 
 @on_state()
 def experimentalist_on_state(variables):
-    a = np.array(random_sample(
-    [[[10, 0], [5, 0], [5, 0], [10, 0]], [[10, -25], [5, -5], [5, -5], [10, -25]], [[25, -200], [5, -5], [5, -5], [25, -200]]]))
-    # Combine all lists into one
-    combined_list = [item for sublist in a for item in sublist]
-    df = pd.DataFrame({'payoff_scheme': [combined_list]})
+    num_trials = 24
+    trials_per_block = 6
+    num_blocks = num_trials // trials_per_block
+
+    independent_data = {
+        "trial_index": np.arange(num_trials),
+        "choice_index": np.random.randint(0, 4, size=num_trials),
+        "payoff_reward_a": [],
+        "payoff_penalty_a": [],
+        "payoff_reward_b": [],
+        "payoff_penalty_b": [],
+        "payoff_reward_c": [],
+        "payoff_penalty_c": [],
+        "payoff_reward_d": [],
+        "payoff_penalty_d": [],
+        "win_chance": [],
+        "starting_points": [200] * num_trials
+    }
+
+    for block in range(num_blocks):
+        reward_a = np.random.randint(10, 30)
+        penalty_a = np.random.randint(-30, 0)
+        reward_b = np.random.randint(10, 30)
+        penalty_b = np.random.randint(-30, 0)
+        reward_c = np.random.randint(10, 30)
+        penalty_c = np.random.randint(-30, 0)
+        reward_d = np.random.randint(10, 30)
+        penalty_d = np.random.randint(-30, 0)
+        win_chance = np.random.uniform(0.4, 0.6)
+
+        for trial in range(trials_per_block):
+            index = block * trials_per_block + trial
+            independent_data["payoff_reward_a"].append(reward_a)
+            independent_data["payoff_penalty_a"].append(penalty_a)
+            independent_data["payoff_reward_b"].append(reward_b)
+            independent_data["payoff_penalty_b"].append(penalty_b)
+            independent_data["payoff_reward_c"].append(reward_c)
+            independent_data["payoff_penalty_c"].append(penalty_c)
+            independent_data["payoff_reward_d"].append(reward_d)
+            independent_data["payoff_penalty_d"].append(penalty_d)
+            independent_data["win_chance"].append(win_chance)
+
+    df = pd.DataFrame(independent_data)
     return Delta(conditions=df)
+
+
 
 
 # ** Experiment Runner ** #
@@ -122,240 +164,117 @@ experiment_runner = firebase_runner(
 # Again, we need to wrap the runner to use it on the state. Here, we send the raw conditions.
 @on_state()
 def runner_on_state(conditions):
-    # for idx, c in conditions.iterrows():
-    #     i_1 = c['S1']
-    #     i_2 = c['S2']
-    #     # get a timeline via sweetPea
-    #     timeline = trial_sequences(i_1, i_2, 10)[0]
-    #     # get js code via sweetBeaan
-    #     js_code = stimulus_sequence(timeline, i_1, i_2)
-    
-    
-    js_code = conditions['payoff_scheme']
-    
-    js_code = json.dumps(js_code.tolist())
+    # Convert the payoff scheme and other variables into the JavaScript code required for the experiment
+    js_code = conditions.to_dict(orient="records")
+    js_code = json.dumps(js_code)  # Convert to JSON format for JavaScript
 
-    # JavaScript code template where js_code is injected
     js_script = f"""
     <script>
-        const experiment_payoff = 1;
         const TRIALS = 24;
-        const WIN_CHANCE = .5;
         const START_POINTS = 200;
-        let highest_score = 0; // Initialize high_score with a default value
-
-        <!-- jsPsych = initJsPsych({{
-            on_finish: function () {{
-                jsPsych.data.get().filter({{trial_type: 'iowaGambling'}});
-            }}
-        }}) -->
+        let highest_score = 0;
 
         jsPsych.init({{
-            timeline: timeline, // `timeline` will be defined by the injected js_code
-            display_element: 'jspsych-experiment', // The div where the experiment will run
+            timeline: timeline,
+            display_element: 'jspsych-experiment',
             on_finish: function() {{
-                jsPsych.data.displayData(); // Callback to handle the data
+                jsPsych.data.displayData();
             }}
         }})
 
-        if (Math.random() >= 0.5) {{
-            highest_score = START_POINTS * 1.5; // Update high_score if the condition is met
-        }}
-
         let values = {js_code};  // Injected js_code
         let flips = [];
-        let winChance = WIN_CHANCE;
         let score = START_POINTS;
 
         timeline = [];
         for (let i = 0; i < TRIALS; i++) {{
-            if (experiment_payoff === 2) {{
-                winChance = 1 - ((i / TRIALS) * 0.8); // Decreases linearly over time
-            }}
-
-            if (Math.random() < winChance) {{
-                flip = 0; // Win
-            }} else {{
-                flip = 1; // Loss
-            }}
+            let flip = Math.random() < values[i]['win_chance'] ? 0 : 1;  // Simulate win/loss
 
             timeline.push({{
                 type: jsPsychIowaGambling,
-                values: [values[0][flip], values[1][flip], values[2][flip], values[3][flip]],
-                reward_penalty: [
-                    [values[0][0], values[0][1]],
-                    [values[1][0], values[1][1]],
-                    [values[2][0], values[2][1]],
-                    [values[3][0], values[3][1]]
+                values: [
+                    [values[i]['payoff_reward_a'], values[i]['payoff_penalty_a']],
+                    [values[i]['payoff_reward_b'], values[i]['payoff_penalty_b']],
+                    [values[i]['payoff_reward_c'], values[i]['payoff_penalty_c']],
+                    [values[i]['payoff_reward_d'], values[i]['payoff_penalty_d']]
                 ],
-                chance: winChance,
-                current_score: () => {{
-                    return score;
-                }},
-                high_score: () => {{
-                    return highest_score;
-                }},
+                current_score: score,
                 on_finish: (data) => {{
-                    score = data.score_after;
-                    if (data.reward === 5) {{
-                        data['type'] = 0;
-                    }} else {{
-                        data['type'] = 1;
-                    }}
+                    score += data.score_after;  // Update the score after each trial
                 }}
             }});
         }}
 
         jsPsych.run(timeline);
-
-        function shuffle(array) {{
-            let currentIndex = array.length, randomIndex;
-
-            while (currentIndex > 0) {{
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-
-                [array[currentIndex], array[randomIndex]] = [
-                    array[randomIndex], array[currentIndex]];
-            }}
-
-            return array;
-        }}
     </script>
     """
     
-    
-    conditions_to_send = pd.DataFrame()
-    conditions_to_send['experiment_code'] = js_script
-    # upload and run the experiment:
+    # Send the experiment script to firebase and run it
+    conditions_to_send = pd.DataFrame({"experiment_code": [js_script]})
     data_raw = experiment_runner(conditions_to_send)
 
-    # process the experiment data
+    # Process the experiment data
     experiment_data = pd.DataFrame()
     for item in data_raw:
-        _lst = json.loads(item)['trials']
+        _lst = json.loads(item)["trials"]
         _df = trial_list_to_experiment_data(_lst)
         experiment_data = pd.concat([experiment_data, _df], axis=0)
+    
     return Delta(experiment_data=experiment_data)
 
-# def trial_list_to_experiment_data(trial_sequence):
-#     """
-#     Parse a trial sequence (from jsPsych) into dependent and independent variables
-#     independent: S1, S2
-#     dependent: rt
-#     """
-#     res_dict = {
-#         'S1': [],
-#         'S2': [],
-#         'rt': []
-#     }
-#     for trial in trial_sequence:
-#         # Filter trials that are not ROK (instructions, fixation, ...)
-#         if trial['trial_type'] != 'rok':
-#             continue
-#         # Filter trials without rt
-#         if 'rt' not in trial or trial['rt'] is None:
-#             continue
-#         # the intensity is equivalent to the number of oobs (set in sweetBean script)
-#         # rt is a default value of every trial
-#         s1 = trial['number_of_oobs'][0]
-#         s2 = trial['number_of_oobs'][1]
-#         rt = trial['rt']
-        
-#         res_dict['S1'].append(int(s1))
-#         res_dict['S2'].append(int(s2))
-#         res_dict['rt'].append(float(rt))
-    
-#     dataframe_raw = pd.DataFrame(res_dict)
-    
-#     # Calculate the mean rt for each S1/S2 combination
-#     grouped = dataframe_raw.groupby(['S1', 'S2']).mean().reset_index()
 
-#     return grouped
-
+# Function to parse the experimental data
 def trial_list_to_experiment_data(trial_sequence):
-    """
-    Parse a trial sequence (from jsPsych) into dependent and independent variables.
-    Extracts the following:
-    - Independent Variables: score_before, score_after, trial_index, choice_index, value
-    - Dependent Variable: type
-    """
     res_dict = {
-        'score_before': [],
-        'score_after': [],
         'trial_index': [],
         'choice_index': [],
-        'value': [],
-        'high_score': [],
-        'type': []
+        'payoff_reward_a': [],
+        'payoff_penalty_a': [],
+        'payoff_reward_b': [],
+        'payoff_penalty_b': [],
+        'payoff_reward_c': [],
+        'payoff_penalty_c': [],
+        'payoff_reward_d': [],
+        'payoff_penalty_d': [],
+        'win_chance': [],
+        'starting_points': [],
+        'score_before': [],
+        'score_after': [],
+        'choice_outcome': []
     }
-    
+
     for trial in trial_sequence:
-        # Filter out trials that are not of the appropriate type (e.g., 'iowaGambling')
-        if trial['trial_type'] != 'iowaGambling':
-            continue
-        
-        # Extract the variables based on the provided keys
-        score_before = trial.get('score_before')
-        score_after = trial.get('score_after')
-        trial_index = trial.get('trial_index')
-        choice_index = trial.get('choice_index')
-        value = trial.get('value')
-        high_score = trial.get('high_score')
-        trial_type = trial.get('type', 0)  # Default to 0 if 'type' is not available
-
-        # Ensure all necessary data is present
-        if None in (score_before, score_after, trial_index, choice_index, value, high_score):
-            continue
-
-        # Append data to the result dictionary
-        res_dict['score_before'].append(float(score_before))
-        res_dict['score_after'].append(float(score_after))
-        res_dict['trial_index'].append(int(trial_index))
-        res_dict['choice_index'].append(int(choice_index))
-        res_dict['value'].append(float(value))
-        res_dict['high_score'].append(int(high_score))
-        res_dict['type'].append(int(trial_type))
+        res_dict['trial_index'].append(trial.get('trial_index'))
+        res_dict['choice_index'].append(trial.get('choice_index'))
+        res_dict['payoff_reward_a'].append(trial.get('payoff_reward_a'))
+        res_dict['payoff_penalty_a'].append(trial.get('payoff_penalty_a'))
+        res_dict['payoff_reward_b'].append(trial.get('payoff_reward_b'))
+        res_dict['payoff_penalty_b'].append(trial.get('payoff_penalty_b'))
+        res_dict['payoff_reward_c'].append(trial.get('payoff_reward_c'))
+        res_dict['payoff_penalty_c'].append(trial.get('payoff_penalty_c'))
+        res_dict['payoff_reward_d'].append(trial.get('payoff_reward_d'))
+        res_dict['payoff_penalty_d'].append(trial.get('payoff_penalty_d'))
+        res_dict['win_chance'].append(trial.get('win_chance'))
+        res_dict['starting_points'].append(trial.get('starting_points'))
+        res_dict['score_before'].append(trial.get('score_before'))
+        res_dict['score_after'].append(trial.get('score_after'))
+        res_dict['choice_outcome'].append(trial.get('choice_outcome'))
     
-    # Convert the result dictionary to a pandas DataFrame
-    dataframe_raw = pd.DataFrame(res_dict)
-    
-    return dataframe_raw
+    return pd.DataFrame(res_dict)
 
-# Now, we can run our components
+
+# Run the components in a loop
 for _ in range(3):
-    state = experimentalist_on_state(state)  # Collect 1 payoff scheme per iteration
+    state = experimentalist_on_state(state)  # Collect independent variables
     state = runner_on_state(state)
     state = theorist_on_state(state)
 
-
-# *** Report the data *** #
-# If you changed the theorist, also change this part
-
-def report_logistic_fit(m: LogisticRegression, feature_names=None, precision=4):
-    # Coefficients (weights)
-    coef = m.coef_.flatten()
+# ** Report the Logistic Regression Fit ** #
+def report_logistic_fit(m: LogisticRegression):
+    print("Logistic Regression Coefficients:")
+    print(m.coef_)
+    print("Intercept:")
+    print(m.intercept_)
     
-    # Intercept
-    intercept = m.intercept_.item()
-
-    # Format feature names
-    if feature_names is None:
-        feature_names = [f"x{i+1}" for i in range(len(coef))]
-
-    # Log-odds equation
-    terms = [f"{np.round(c, precision)} * {fn}" for c, fn in zip(coef, feature_names)]
-    log_odds_eq = " + ".join(terms)
-    s = f"log-odds = {log_odds_eq} + {np.round(intercept, precision)}"
-
-    # Odds ratios (exponentiated coefficients)
-    odds_ratios = np.exp(coef)
-    odds_ratios_str = ", ".join([f"{fn}: {np.round(or_, precision)}" for fn, or_ in zip(feature_names, odds_ratios)])
-    
-    s += f"\nOdds Ratios: {odds_ratios_str}"
-    
-    return s
-
-
-print(report_logistic_fit(state.models[0]))
-print(report_logistic_fit(state.models[-1]))
+# Report the theorist's model fit
+report_logistic_fit(theorist)
