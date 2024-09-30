@@ -7,7 +7,7 @@ Basic Workflow
 """
 
 import json
-
+import os
 from autora.variable import VariableCollection, Variable
 from autora.experimentalist.random import random_sample
 from autora.experiment_runner.firebase_prolific import firebase_runner
@@ -140,19 +140,7 @@ def experimentalist_on_state(variables):
 # (https://console.firebase.google.com/)
 #   -> project -> project settings -> service accounts -> generate new private key
 
-firebase_credentials = {
-  "type": "service_account",
-  "project_id": "sweetbean-experiment",
-  "private_key_id": "71c0102fb21c5a630ab92f7b1921ec71a2bfcb31",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDnVrWGOebjLNW/\ns+ZHpgEymAj6fBWCGfIw+tY2jq/be21r6yRbo9b4x8qLDybSacmR2hy5CFfSoGpt\nt7mxzyzvj//Ac0CM9BA012g7sRC/2d79vWrLYCdkHJdr/IITSTchUlI0kbOFdML+\nundN94oWYLMb3Al/t329O5FH6dmbJFBG5wvZ8o9pmy6QRqSFZ+G7MJyIxQ67Xzwn\nrC5zhVQkGgmgr677CIQcQRNksKbKWncmatuMlrpjXz1Qejvd4ofhpJeIMhSbN0JZ\nx1u5ExJmk8+Im3gG7tNxiYi1fKeR17YapbcTpLBwY3PEYeFABn/K2TH/vjavwxZ/\nZBG22aG/AgMBAAECggEAMvt198XM72XTGXNhHYslGmxNFj7AUrK7IDY3fUCG2vzh\niXYBxjxeROdq6KiHKrnrlTwXNmPzTtTRf6qMvvXkdksq1tPPdwDWjX6nVvhXs6Al\nN5BF99oR9Eskx8SXOf7ZqntE6JbvlEq+KnsXjdQu122qK0qbwUzD5i85fjq4HStB\nN3io6h1WkJ2z0mRM3474LLiZOlPwEfDgahqDo8YcAYKAC79GQZv8QcpZnLdTeioz\nkXjc9mRzombUKsjZL9s869yfFiKWQf1oTa9hAFp98x9DNFBl2Pmu/kkZAZqxOwBV\nol7wUcvhqpOvKWfhoz8W2LSneswlcO+fUpD+ERxHgQKBgQD9gG6zwtrWrpvyzbQm\n2CuQAPMxWhpbohYfRq8kwDtfJkt5XkwbXU1/9ke3f12brQstThj+bcCaldaJNCyk\nWzBjBvkzDdTKNKF/C+nCzmYMMVmGr0ZpwwVpgpQ/3JzFUpr6BcHpyfWulOfDGr9T\n4gbJCc6kbhnJxsDk1eo9IUBWfwKBgQDpnlxnJIGCWfdotWaHUk9XveCl0UD/0Gbm\n6DQmJMSQTaX7QoZscj9ICdoIMqi0RZGMdfT6U5QHHWBQ9vBXh3BISM1WJJT5otZ0\nEovSB+nDDiiJRMB7sR91GcMVJikE+bXa5IIyV4XuOlKXPl0I2pwCjJWi+PeRhzy3\nhEiY5ymUwQKBgQD7T/bveS5QhHwQIsQFemr9cSOneocE7tR1nzKFAZoagzFxmf1j\nZ4UsZbDFhpv7eHrLKFB4879swT0VekcDjW+TzNcCOSUKbVDpTZsqSEo8rjPt5Reu\nQ+u6pPxpr0EwEeuYEFskddZ9hBubfYnOFBbb+UAGHSytr7+NXVDB15Qb6wKBgAzi\n5lfuJJKrIcGN2AT43lWJrL2YyEwUE8kC3/WGq60GC3TLm5yZxLHVkUhIexPOjpO/\n4e54875cuXZd2K4LU385PNJWnD0U5V1rtHi2ZQeUXVoNB80K3SBZdnBRNYwHtidH\n2YKrX0DfyLR9BSa64EYnuQ1PTGCjpA6/Zj3A6oNBAoGBAMKYChj8aYQ+W4xhTJlx\nYw7327kkrC5cC629J53slarnJZJuHDF/5RymssmdLJq2cBMppS3cc17pY9BaAKP3\nUeKXqOV9ydzfUPaFHDQeUXSUO0mAsR4oztBINWNBs0hMuohKrobbigbJA5ZZwll9\njEWRXIoY6+oA9a483p890qjP\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-ap5gl@sweetbean-experiment.iam.gserviceaccount.com",
-  "client_id": "117772886570355590756",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ap5gl%40sweetbean-experiment.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
+firebase_credentials = os.getenv('FIREBASE_API')
 
 # simple experiment runner that runs the experiment on firebase
 experiment_runner = firebase_runner(
