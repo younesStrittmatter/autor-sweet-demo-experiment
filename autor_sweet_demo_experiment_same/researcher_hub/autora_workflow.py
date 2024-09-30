@@ -148,7 +148,6 @@ experiment_runner = firebase_runner(
     time_out=100,
     sleep_time=5)
 
-
 # Again, we need to wrap the runner to use it on the state. Here, we send the raw conditions.
 @on_state()
 def runner_on_state(conditions):
