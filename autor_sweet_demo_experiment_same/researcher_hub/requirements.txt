@@ -1,0 +1,16 @@
+autora-core
+autora[theorist-darts]
+autora[theorist-bms]
+autora[experimentalist-inequality]
+autora[experimentalist-novelty]
+autora[experimentalist-nearest-value]
+autora[experimentalist-model-disagreement]
+autora[experimentalist-uncertainty]
+autora[experimentalist-leverage]
+autora[experimentalist-falsification]
+autora[experimentalist-mixture]
+autora[experimentalist-prediction-filter]
+autora[experimentalist-bandit-random]
+autora[experiment-runner-firebase-prolific]
+sweetbean
+sweetpea
