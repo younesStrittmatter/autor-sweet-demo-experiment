@@ -19,8 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sweetbean.sequence import Block, Experiment
 from sweetbean.stimulus import TextStimulus
 
-from trial_sequence import trial_sequences
-from stimulus_sequence import stimulus_sequence
+
 # *** Set up variables *** #
 variables = VariableCollection(
     independent_variables=[
@@ -140,8 +139,8 @@ def experimentalist_on_state(variables):
 # (https://console.firebase.google.com/)
 #   -> project -> project settings -> service accounts -> generate new private key
 
-firebase_credentials = os.getenv('FIREBASE_API')
-
+firebase_credentials = os.getenv('FIREBASE_API_TOKEN')
+print(firebase_credentials)
 # simple experiment runner that runs the experiment on firebase
 experiment_runner = firebase_runner(
     firebase_credentials=firebase_credentials,
